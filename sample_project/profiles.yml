@@ -1,0 +1,13 @@
+sample_project:
+  outputs:
+    dev:
+      type: snowflake
+      account: "{{ env_var('SNOWFLAKE_ACCOUNT') }}"
+      role: sysadmin
+      user: "{{ env_var('SNOWFLAKE_USER') }}"
+      private_key_path: "{{ env_var('SNOWFLAKE_PRIVATE_KEY_PATH') }}"
+      warehouse: d_harato_wh
+      database: d_harato_db
+      schema: trocco_dbt_snow
+      threads: 8
+  target: dev
