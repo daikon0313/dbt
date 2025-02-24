@@ -19,10 +19,6 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ap-northeast-1
 
-      - name: Upload dbt_project.yml to S3
+      - name: Upload target directory to S3
         run: |
-          aws s3 cp github/dbt/sample_project/dbt_project.yml s3://harato-trocco-dbt-snow/dbt_project.yml --acl private
-
-          - name: Upload target directory to S3
-          run: |
-            aws s3 sync github/dbt/sample_project/target/ s3://harato-trocco-dbt-snow/target/ --acl private
+            aws s3 sync github/dbt/sample_project/target/ s3://harato-trocco-dbt-snow/ --acl private
