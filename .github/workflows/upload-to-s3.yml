@@ -37,6 +37,8 @@ jobs:
           mkdir -p ~/.ssh
           echo "${{ secrets.SNOWFLAKE_PRIVATE_KEY }}" > ~/.ssh/snowflake_tf_snow_key.p8
           chmod 600 ~/.ssh/snowflake_tf_snow_key.p8
+          ls -la
+          ls -la ~/.ssh
 
       - name: Run dbt docs generate
         run: |
