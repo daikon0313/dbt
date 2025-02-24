@@ -41,6 +41,7 @@ jobs:
       - name: Run dbt docs generate
         run: |
           cd sample_project
+          dbt deps
           dbt docs generate
 
       - name: Upload target directory to S3
