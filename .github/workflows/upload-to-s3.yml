@@ -8,6 +8,10 @@ on:
 jobs:
   upload_files:
     runs-on: ubuntu-latest
+    env:
+        SNOWFLAKE_ACCOUNT: ${{ secrets.SNOWFLAKE_ACCOUNT }}
+        SNOWFLAKE_USER: ${{ secrets.SNOWFLAKE_USER }}
+        SNOWFLAKE_PRIVATE_KEY_PATH: ${{ github.workspace }}/.ssh/snowflake_tf_snow_key.p8
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
@@ -15,7 +19,7 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
-          python-version: '3.12'
+          python-version: '3.x'
 
       - name: Install dbt
         run: |
@@ -27,6 +31,12 @@ jobs:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ap-northeast-1
+
+      - name: Setup Snowflake private key
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.SNOWFLAKE_PRIVATE_KEY }}" > ~/.ssh/snowflake_tf_snow_key.p8
+          chmod 600 ~/.ssh/snowflake_tf_snow_key.p8
 
       - name: Run dbt docs generate
         run: |
