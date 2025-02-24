@@ -24,12 +24,13 @@ jobs:
         run: |
           pip install dbt-core dbt-snowflake
 
-      - name: Configure AWS credentials
+      - name: Configure AWS credentials with Role Assumption
         uses: aws-actions/configure-aws-credentials@v2
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ap-northeast-1
+          role-to-assume: ${{ secrets.ROLE_TO_ASSUME }}
 
       - name: Setup Snowflake private key
         run: |
