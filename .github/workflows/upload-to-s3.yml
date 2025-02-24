@@ -23,6 +23,6 @@ jobs:
         run: |
           aws s3 cp github/dbt/sample_project/dbt_project.yml s3://harato-trocco-dbt-snow/dbt_project.yml --acl private
 
-      - name: Upload catalog.json to S3
-        run: |
-          aws s3 cp github/dbt/sample_project/target/manifest.json s3://harato-trocco-dbt-snow/target/catalog.json --acl private
+          - name: Upload target directory to S3
+          run: |
+            aws s3 sync github/dbt/sample_project/target/ s3://harato-trocco-dbt-snow/target/ --acl private
