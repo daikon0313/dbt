@@ -39,21 +39,19 @@ jobs:
           ls -la ~/.ssh
           echo "SNOWFLAKE_PRIVATE_KEY_PATH=$HOME/.ssh/snowflake_tf_snow_key.p8" >> $GITHUB_ENV
 
+      - name: Test AWS Connectivity
+        run: |
+          echo "Getting AWS caller identity:"
+          aws sts get-caller-identity
+          echo "Listing contents of harato-trocco-dbt-snow bucket:"
+          aws s3 ls s3://harato-trocco-dbt-snow/
+
       - name: Run dbt docs generate
         run: |
           cd sample_project
           dbt deps
           dbt docs generate
 
-      - name: Test AWS Connectivity
-        run: |
-            echo "Getting AWS caller identity:"
-            aws sts get-caller-identity
-            echo "Listing S3 buckets:"
-            aws s3 ls
-            echo "Listing contents of harato-trocco-dbt-snow bucket:"
-            aws s3 ls s3://harato-trocco-dbt-snow/
-    
       - name: Upload target directory to S3
         run: |
           aws s3 sync sample_project/target/ s3://harato-trocco-dbt-snow/ --acl private
