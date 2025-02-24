@@ -23,6 +23,7 @@ jobs:
         run: |
             pwd
             ls -la
+            ls -la sample_project/
   
       - name: List target directory contents
         run: |
