@@ -8,6 +8,6 @@ sample_project:
       private_key_path: "{{ env_var('SNOWFLAKE_PRIVATE_KEY_PATH') }}"
       warehouse: d_harato_wh
       database: d_harato_db
-      schema: trocco_dbt_snow
+      schema: dbt_snow
       threads: 8
   target: dev
