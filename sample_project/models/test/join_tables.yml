@@ -1,4 +1,56 @@
 version: 2
 models:
   - name: join_tables
-    columns: []
+    columns:
+      - name: CUSTKEY
+        data_type: NUMBER
+      - name: CUSTOMER_NAME
+        data_type: VARCHAR
+      - name: CUSTOMER_ADDRESS
+        data_type: VARCHAR
+      - name: NATIONKEY
+        data_type: NUMBER
+      - name: NATION_NAME
+        data_type: VARCHAR
+      - name: REGIONKEY
+        data_type: NUMBER
+      - name: NATION_COMMENT
+        data_type: VARCHAR
+      - name: ORDERKEY
+        data_type: NUMBER
+      - name: ORDERSTATUS
+        data_type: VARCHAR
+      - name: TOTALPRICE
+        data_type: NUMBER
+      - name: ORDERDATE
+        data_type: DATE
+      - name: ORDERPRIORITY
+        data_type: VARCHAR
+      - name: CLERK
+        data_type: VARCHAR
+      - name: LINENUMBER
+        data_type: NUMBER
+      - name: QUANTITY
+        data_type: NUMBER
+      - name: EXTENDEDPRICE
+        data_type: NUMBER
+      - name: DISCOUNT
+        data_type: NUMBER
+      - name: TAX
+        data_type: NUMBER
+      - name: RETURNFLAG
+        data_type: VARCHAR
+      - name: LINESTATUS
+        data_type: VARCHAR
+      - name: SHIPDATE
+        data_type: DATE
+      - name: COMMITDATE
+        data_type: DATE
+      - name: RECEIPTDATE
+        data_type: DATE
+      - name: SHIPINSTRUCT
+        data_type: VARCHAR
+      - name: SHIPMODE
+        data_type: VARCHAR
+      - name: LINEITEM_COMMENT
+        data_type: VARCHAR

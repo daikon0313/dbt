@@ -1,0 +1,28 @@
+version: 2
+models:
+  - name: notion_mart
+    columns:
+      - name: FETCHED_AT
+        data_type: TIMESTAMP_LTZ
+      - name: PAGE_ID
+        data_type: VARCHAR
+      - name: DURATION_MINUTES
+        data_type: NUMBER
+      - name: STATUS
+        data_type: VARCHAR
+      - name: PROJECT_TAG
+        data_type: VARCHAR
+      - name: WORK_TAG
+        data_type: VARCHAR
+      - name: START_TIME
+        data_type: TIMESTAMP_TZ
+      - name: END_TIME
+        data_type: TIMESTAMP_TZ
+      - name: DUE_DATE
+        data_type: DATE
+      - name: NOTION_URL
+        data_type: VARCHAR
+      - name: CREATED_TIME
+        data_type: TIMESTAMP_TZ
+      - name: LAST_EDITED_TIME
+        data_type: TIMESTAMP_TZ

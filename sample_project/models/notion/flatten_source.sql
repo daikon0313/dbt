@@ -4,7 +4,8 @@ with source_data as (
 )
 
 SELECT
-  fetched_at,
+  fetched_at::date as fetched_at,
+  current_date() as last_query_time
   context.value:id::STRING AS page_id,  -- NotionページのID
   context.value:properties."Duration(h)".formula.number::number(38,1) * 60 AS duration_minutes, -- 作業時間
   context.value:properties.Status.status.name::STRING AS status, -- ステータス

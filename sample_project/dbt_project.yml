@@ -33,6 +33,10 @@ models:
   sample_project:
     +dbt-osmosis: "{model}.yml"
     notion:
-      +materialized: table
+      +query_tag: dbt_special
+      +materialized: dynamic_table
+      +target_lag: downstream
+      +refresh_mode: incremental
+      +snowflake_warehouse: d_harato_wh
     test:
       +materialized: view
