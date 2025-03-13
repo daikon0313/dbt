@@ -1,0 +1,93 @@
+version: 1
+
+sources:
+  - name: tpch_sample
+    database: snowflake_sample_data
+    schema: tpch_sf1
+    tables:
+      - name: customer
+        description: tpch サンプルデータ - customer テーブル
+        columns:
+          - name: C_CUSTKEY
+            data_type: NUMBER
+          - name: C_NAME
+            data_type: VARCHAR
+          - name: C_ADDRESS
+            data_type: VARCHAR
+          - name: C_NATIONKEY
+            data_type: NUMBER
+          - name: C_PHONE
+            data_type: VARCHAR
+          - name: C_ACCTBAL
+            data_type: NUMBER
+          - name: C_MKTSEGMENT
+            data_type: VARCHAR
+          - name: C_COMMENT
+            data_type: VARCHAR
+      - name: nation
+        description: tpch サンプルデータ - nation テーブル
+        columns:
+          - name: N_NATIONKEY
+            data_type: NUMBER
+          - name: N_NAME
+            data_type: VARCHAR
+          - name: N_REGIONKEY
+            data_type: NUMBER
+          - name: N_COMMENT
+            data_type: VARCHAR
+      - name: orders
+        description: tpch サンプルデータ - orders テーブル
+        columns:
+          - name: O_ORDERKEY
+            data_type: NUMBER
+          - name: O_CUSTKEY
+            data_type: NUMBER
+          - name: O_ORDERSTATUS
+            data_type: VARCHAR
+          - name: O_TOTALPRICE
+            data_type: NUMBER
+          - name: O_ORDERDATE
+            data_type: DATE
+          - name: O_ORDERPRIORITY
+            data_type: VARCHAR
+          - name: O_CLERK
+            data_type: VARCHAR
+          - name: O_SHIPPRIORITY
+            data_type: NUMBER
+          - name: O_COMMENT
+            data_type: VARCHAR
+      - name: lineitem
+        description: tpch サンプルデータ - lineitem テーブル
+        columns:
+          - name: L_ORDERKEY
+            data_type: NUMBER
+          - name: L_PARTKEY
+            data_type: NUMBER
+          - name: L_SUPPKEY
+            data_type: NUMBER
+          - name: L_LINENUMBER
+            data_type: NUMBER
+          - name: L_QUANTITY
+            data_type: NUMBER
+          - name: L_EXTENDEDPRICE
+            data_type: NUMBER
+          - name: L_DISCOUNT
+            data_type: NUMBER
+          - name: L_TAX
+            data_type: NUMBER
+          - name: L_RETURNFLAG
+            data_type: VARCHAR
+          - name: L_LINESTATUS
+            data_type: VARCHAR
+          - name: L_SHIPDATE
+            data_type: DATE
+          - name: L_COMMITDATE
+            data_type: DATE
+          - name: L_RECEIPTDATE
+            data_type: DATE
+          - name: L_SHIPINSTRUCT
+            data_type: VARCHAR
+          - name: L_SHIPMODE
+            data_type: VARCHAR
+          - name: L_COMMENT
+            data_type: VARCHAR

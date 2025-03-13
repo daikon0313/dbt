@@ -3,11 +3,11 @@ sample_project:
     dev:
       type: snowflake
       account: "{{ env_var('SNOWFLAKE_ACCOUNT') }}"
-      role: sysadmin
+      role: accountadmin
       user: "{{ env_var('SNOWFLAKE_USER') }}"
       private_key_path: "{{ env_var('SNOWFLAKE_PRIVATE_KEY_PATH') }}"
       warehouse: d_harato_wh
       database: d_harato_db
-      schema: dbt_snow
+      schema: notion
       threads: 8
   target: dev
