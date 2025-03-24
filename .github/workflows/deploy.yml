@@ -1,4 +1,4 @@
-name: Run dbt-profiler on push
+name: Run dbt-profiler (print_profile) for notion_mart on push
 
 on:
   push:
@@ -25,18 +25,10 @@ jobs:
 
       - name: Install dbt packages
         working-directory: sample_project
-        run: |
-          dbt deps
+        run: dbt deps
 
-      - name: Show repository structure
-        run: |
-          echo "Current directory:"
-          pwd
-          echo "Listing contents:"
-          ls -la
-
-      - name: Run dbt build & dbt-profiler and capture output
-        id: profiler
+      - name: Run dbt build & print_profile for notion_mart and capture output
+        id: print_profile
         working-directory: sample_project
         env:
           SNOWFLAKE_ACCOUNT: ${{ secrets.SNOWFLAKE_ACCOUNT }}
@@ -45,21 +37,21 @@ jobs:
         run: |
           # ビルド実行（必要に応じて）
           dbt build --target prd
-          # dbt-profiler の出力をキャプチャ
-          output=$(dbt-profiler --target prd)
+          # print_profile マクロを run-operation で実行し、notion_mart のプロファイルを出力
+          output=$(dbt run-operation print_profile --args '{"relation_name": "notion_mart"}')
           echo "dbt-profiler output:"
           echo "$output"
-          echo "profiler_output<<EOF" >> $GITHUB_OUTPUT
+          echo "profile_output<<EOF" >> $GITHUB_OUTPUT
           echo "$output" >> $GITHUB_OUTPUT
           echo "EOF" >> $GITHUB_OUTPUT
 
       - name: Post dbt-profiler result as a commit comment
         uses: actions/github-script@v6
         env:
-          PROFILER_OUTPUT: ${{ steps.profiler.outputs.profiler_output }}
+          PROFILE_OUTPUT: ${{ steps.print_profile.outputs.profile_output }}
         with:
           script: |
-            const commentBody = `## dbt-profiler Result\n\n\`\`\`markdown\n${process.env.PROFILER_OUTPUT}\n\`\`\``;
+            const commentBody = `## dbt-profiler Print Profile for notion_mart\n\n\`\`\`\n${process.env.PROFILE_OUTPUT}\n\`\`\``;
             await github.repos.createCommitComment({
               owner: context.repo.owner,
               repo: context.repo.repo,
