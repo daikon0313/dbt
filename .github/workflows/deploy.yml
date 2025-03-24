@@ -27,34 +27,23 @@ jobs:
         working-directory: sample_project
         run: dbt deps
 
-      - name: Run dbt build & print_profile for notion_mart and capture output
-        id: print_profile
+      - name: Run dbt build for notion_mart
         working-directory: sample_project
         env:
           SNOWFLAKE_ACCOUNT: ${{ secrets.SNOWFLAKE_ACCOUNT }}
           SNOWFLAKE_USER: ${{ secrets.SNOWFLAKE_USER }}
           SNOWFLAKE_PRIVATE_KEY: ${{ secrets.SNOWFLAKE_PRIVATE_KEY }}
         run: |
-          # ビルド実行（必要に応じて）
-          dbt build --target prd
-          # print_profile マクロを run-operation で実行し、notion_mart のプロファイルを出力
-          output=$(dbt run-operation print_profile --args '{"relation_name": "notion_mart"}')
-          echo "dbt-profiler output:"
-          echo "$output"
-          echo "profile_output<<EOF" >> $GITHUB_OUTPUT
-          echo "$output" >> $GITHUB_OUTPUT
-          echo "EOF" >> $GITHUB_OUTPUT
+          dbt build
 
-      - name: Post dbt-profiler result as a commit comment
-        uses: actions/github-script@v6
+      - name: Generate profiler markdown file
+        working-directory: sample_project
         env:
-          PROFILE_OUTPUT: ${{ steps.print_profile.outputs.profile_output }}
-        with:
-          script: |
-            const commentBody = `## dbt-profiler Print Profile for notion_mart\n\n\`\`\`\n${process.env.PROFILE_OUTPUT}\n\`\`\``;
-            await github.repos.createCommitComment({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              commit_sha: context.sha,
-              body: commentBody,
-            });
+          SNOWFLAKE_ACCOUNT: ${{ secrets.SNOWFLAKE_ACCOUNT }}
+          SNOWFLAKE_USER: ${{ secrets.SNOWFLAKE_USER }}
+          SNOWFLAKE_PRIVATE_KEY: ${{ secrets.SNOWFLAKE_PRIVATE_KEY }}
+        run: |
+          # docs フォルダがなければ作成
+          dbt run-operation print_profile --args '{"relation_name": "notion_mart", "exclude_measures": ["std_dev_population", "std_dev_sample", "avg", "median"]}' > notion_mart.md
+
+          echo notion_mart.md
