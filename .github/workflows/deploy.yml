@@ -23,6 +23,13 @@ jobs:
           python -m pip install --upgrade pip
           pip install dbt-core dbt-snowflake
 
+      - name: check
+        run: |
+          echo "pwd"
+          pwd
+          echo "ls"
+          ls
+
       - name: Run dbt models
         env:
           SNOWFLAKE_ACCOUNT: ${{ secrets.SNOWFLAKE_ACCOUNT }}
