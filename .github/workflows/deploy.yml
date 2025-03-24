@@ -1,14 +1,15 @@
-name: Run dbt-profiler (print_profile) for notion_mart on push
+name: Comment PR with dbt profiler markdown
+
+permissions:
+  issues: write
 
 on:
-  push:
-    branches:
-      - main
+  pull_request:
+    types: [opened, reopened, synchronize]
 
 jobs:
-  run-dbt-profiler:
+  comment-pr:
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
@@ -43,7 +44,30 @@ jobs:
           SNOWFLAKE_USER: ${{ secrets.SNOWFLAKE_USER }}
           SNOWFLAKE_PRIVATE_KEY: ${{ secrets.SNOWFLAKE_PRIVATE_KEY }}
         run: |
-          # docs フォルダがなければ作成
-          dbt run-operation print_profile --args '{"relation_name": "notion_mart", "exclude_measures": ["std_dev_population", "std_dev_sample", "avg", "median"]}' > notion_mart.md
+          echo "### dbt Profiler Report" > notion_mart.md
+          echo "**Model:** notion_mart" >> notion_mart.md
+          echo "" >> notion_mart.md
 
+          # 2) ファイル出力
+          dbt run-operation print_profile --args '{"relation_name": "notion_mart", "exclude_measures": ["std_dev_population", "std_dev_sample", "avg", "median"]}' 2>&1 \
+            | sed -r 's/\x1B\[[0-9;]*[mK]//g' \
+            | awk '/^\|/{print}' >> notion_mart.md
+
+          # 確認
           cat notion_mart.md
+
+      - name: Set comment as output
+        id: get_comment
+        working-directory: sample_project
+        run: |
+          comment=$(cat notion_mart.md)
+          echo "comment<<EOF" >> $GITHUB_OUTPUT
+          echo "$comment" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
+      - name: Post profiler comment to PR
+        uses: peter-evans/create-or-update-comment@v3
+        with:
+          token: ${{ secrets.PERSONAL_GITHUB_TOKEN }}
+          issue-number: ${{ github.event.pull_request.number }}
+          body: ${{ steps.get_comment.outputs.comment }}
