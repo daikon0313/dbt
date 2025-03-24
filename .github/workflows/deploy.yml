@@ -1,4 +1,4 @@
-name: Comment PR with dbt profiler markdown
+name: Comment PR with fixed message
 
 permissions:
   issues: write
@@ -14,51 +14,12 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v3
 
-      - name: Set up Python 3.10
-        uses: actions/setup-python@v4
-        with:
-          python-version: '3.10'
-
-      - name: Install Python dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install dbt-core dbt-snowflake
-
-      - name: Install dbt packages
-        working-directory: sample_project
-        run: dbt deps
-
-      - name: Run dbt build for notion_mart
-        working-directory: sample_project
-        env:
-          SNOWFLAKE_ACCOUNT: ${{ secrets.SNOWFLAKE_ACCOUNT }}
-          SNOWFLAKE_USER: ${{ secrets.SNOWFLAKE_USER }}
-          SNOWFLAKE_PRIVATE_KEY: ${{ secrets.SNOWFLAKE_PRIVATE_KEY }}
-        run: |
-          dbt build
-
-      - name: Generate profiler markdown file
-        working-directory: sample_project
-        env:
-          SNOWFLAKE_ACCOUNT: ${{ secrets.SNOWFLAKE_ACCOUNT }}
-          SNOWFLAKE_USER: ${{ secrets.SNOWFLAKE_USER }}
-          SNOWFLAKE_PRIVATE_KEY: ${{ secrets.SNOWFLAKE_PRIVATE_KEY }}
-        run: |
-          # notion_mart.md に dbt_profiler の出力を保存
-          dbt run-operation print_profile --args '{"relation_name": "notion_mart", "exclude_measures": ["std_dev_population", "std_dev_sample", "avg", "median"]}' > notion_mart.md
-          # 必要に応じてヘッダーなどを追加
-          echo "### dbt Profiler Report for notion_mart" >> notion_mart.md
-          echo "" >> notion_mart.md
-          # ファイル内容をログに出力して確認
-          cat notion_mart.md
-
       - name: Create fixed comment file
         run: |
           cat <<EOF > comment.md
           This is a fixed comment.
           Please check the run details at: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
           EOF
-          # 出力確認用にファイル内容を表示
           cat comment.md
 
       - name: Set comment as output
