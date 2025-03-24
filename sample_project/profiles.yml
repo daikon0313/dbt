@@ -6,7 +6,7 @@ sample_project:
       account: "{{ env_var('SNOWFLAKE_ACCOUNT') }}"
       role: accountadmin
       user: "{{ env_var('SNOWFLAKE_USER') }}"
-      private_key_path: "{{ env_var('SNOWFLAKE_PRIVATE_KEY_PATH') }}"
+      private_key: "{{ env_var('SNOWFLAKE_PRIVATE_KEY') }}"
       warehouse: d_harato_wh
       database: d_harato_db
       schema: notion
@@ -16,7 +16,7 @@ sample_project:
       account: "{{ env_var('SNOWFLAKE_ACCOUNT') }}"
       role: accountadmin
       user: "{{ env_var('SNOWFLAKE_USER') }}"
-      private_key_path: "{{ env_var('SNOWFLAKE_PRIVATE_KEY_PATH') }}"
+      private_key: "{{ env_var('SNOWFLAKE_PRIVATE_KEY') }}"
       warehouse: d_harato_wh
       database: d_harato_db
       schema: notion
