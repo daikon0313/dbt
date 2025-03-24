@@ -46,4 +46,4 @@ jobs:
           # docs フォルダがなければ作成
           dbt run-operation print_profile --args '{"relation_name": "notion_mart", "exclude_measures": ["std_dev_population", "std_dev_sample", "avg", "median"]}' > notion_mart.md
 
-          echo notion_mart.md
+          cat notion_mart.md
