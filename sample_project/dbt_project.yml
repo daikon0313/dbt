@@ -31,12 +31,9 @@ clean-targets:         # directories to be removed by `dbt clean`
 # files using the `{{ config(...) }}` macro.
 models:
   sample_project:
-    +dbt-osmosis: "{model}.yml"
     notion:
-      +query_tag: dbt_special
-      +materialized: dynamic_table
-      +target_lag: downstream
-      +refresh_mode: incremental
-      +snowflake_warehouse: d_harato_wh
+      +materialized: view
+      +database: "{{ 'd_harato_db' if target.name == 'prd' else 'd_harato_tf_db' }}"
+      +schema: "{{ 'prd_notion' if target.name == 'prd' else 'notion' }}"
     test:
       +materialized: view

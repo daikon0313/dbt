@@ -1,4 +1,5 @@
 sample_project:
+  target: dev
   outputs:
     dev:
       type: snowflake
@@ -10,4 +11,13 @@ sample_project:
       database: d_harato_db
       schema: notion
       threads: 8
-  target: dev
+    prd:
+      type: snowflake
+      account: "{{ env_var('SNOWFLAKE_ACCOUNT') }}"
+      role: accountadmin
+      user: "{{ env_var('SNOWFLAKE_USER') }}"
+      private_key_path: "{{ env_var('SNOWFLAKE_PRIVATE_KEY_PATH') }}"
+      warehouse: d_harato_wh
+      database: d_harato_db
+      schema: notion
+      threads: 8
