@@ -1,4 +1,4 @@
-name: Comment PR with dbt profiler markdown
+name: Comment PR with profiler report for changed models
 
 permissions:
   issues: write
@@ -13,6 +13,8 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
+        with:
+          fetch-depth: 0   # 差分抽出のために全履歴を取得
 
       - name: Set up Python 3.10
         uses: actions/setup-python@v4
@@ -28,46 +30,58 @@ jobs:
         working-directory: sample_project
         run: dbt deps
 
-      - name: Run dbt build for notion_mart
+      - name: Identify changed models
+        working-directory: sample_project
+        run: |
+          # origin/main と比較して変更された models/ 配下の .sql ファイルを抽出
+          git fetch origin main
+          changed_models=$(git diff --name-only origin/main...HEAD | grep '^models/.*\.sql$' || true)
+          echo "Changed models: $changed_models"
+          echo "$changed_models" > changed_models.txt
+          cat changed_models.txt
+
+      - name: Generate combined profiler report for changed models
         working-directory: sample_project
         env:
           SNOWFLAKE_ACCOUNT: ${{ secrets.SNOWFLAKE_ACCOUNT }}
           SNOWFLAKE_USER: ${{ secrets.SNOWFLAKE_USER }}
           SNOWFLAKE_PRIVATE_KEY: ${{ secrets.SNOWFLAKE_PRIVATE_KEY }}
         run: |
-          dbt build
+          # 初期化：統合レポートファイルを作成
+          echo "### dbt Profiler Report for Changed Models" > combined_report.md
+          echo "" >> combined_report.md
+          
+          # 変更のあったモデルがある場合
+          if [ -s changed_models.txt ]; then
+            while read model_path; do
+              # ファイル名から拡張子 .sql を除いてモデル名を抽出
+              model_name=$(basename "$model_path" .sql)
+              echo "#### Model: ${model_name}" >> combined_report.md
+              echo "" >> combined_report.md
+              # 各モデルに対して dbt_profiler を実行
+              dbt run-operation print_profile --args "{\"relation_name\": \"${model_name}\", \"exclude_measures\": [\"std_dev_population\", \"std_dev_sample\", \"avg\", \"median\"]}" 2>&1 \
+                | sed -r 's/\x1B\[[0-9;]*[mK]//g' \
+                | awk '/^\|/{print}' >> combined_report.md
+              echo "" >> combined_report.md
+            done < changed_models.txt
+          else
+            echo "No changed models found." >> combined_report.md
+          fi
+          # ログ出力で内容を確認
+          cat combined_report.md
 
-      - name: Generate profiler markdown file
+      - name: Set combined report as output
+        id: get_report
         working-directory: sample_project
-        env:
-          SNOWFLAKE_ACCOUNT: ${{ secrets.SNOWFLAKE_ACCOUNT }}
-          SNOWFLAKE_USER: ${{ secrets.SNOWFLAKE_USER }}
-          SNOWFLAKE_PRIVATE_KEY: ${{ secrets.SNOWFLAKE_PRIVATE_KEY }}
         run: |
-          echo "### dbt Profiler Report" > notion_mart.md
-          echo "**Model:** notion_mart" >> notion_mart.md
-          echo "" >> notion_mart.md
-
-          # 2) ファイル出力
-          dbt run-operation print_profile --args '{"relation_name": "notion_mart", "exclude_measures": ["std_dev_population", "std_dev_sample", "avg", "median"]}' 2>&1 \
-            | sed -r 's/\x1B\[[0-9;]*[mK]//g' \
-            | awk '/^\|/{print}' >> notion_mart.md
-
-          # 確認
-          cat notion_mart.md
-
-      - name: Set comment as output
-        id: get_comment
-        working-directory: sample_project
-        run: |
-          comment=$(cat notion_mart.md)
-          echo "comment<<EOF" >> $GITHUB_OUTPUT
-          echo "$comment" >> $GITHUB_OUTPUT
+          report=$(cat combined_report.md)
+          echo "report<<EOF" >> $GITHUB_OUTPUT
+          echo "$report" >> $GITHUB_OUTPUT
           echo "EOF" >> $GITHUB_OUTPUT
 
-      - name: Post profiler comment to PR
+      - name: Post profiler report to PR using PAT
         uses: peter-evans/create-or-update-comment@v3
         with:
           token: ${{ secrets.PERSONAL_GITHUB_TOKEN }}
           issue-number: ${{ github.event.pull_request.number }}
-          body: ${{ steps.get_comment.outputs.comment }}
+          body: ${{ steps.get_report.outputs.report }}

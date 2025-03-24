@@ -50,7 +50,8 @@ select
   l.l_receiptdate   as receiptdate,
   l.l_shipinstruct  as shipinstruct,
   l.l_shipmode      as shipmode,
-  l.l_comment       as lineitem_comment
+  l.l_comment       as lineitem_comment,
+  'test' as test
 from customer c
 inner join nation n
   on c.c_nationkey = n.n_nationkey
