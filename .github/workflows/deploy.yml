@@ -1,11 +1,16 @@
-name: Comment PR with profiler report for changed models
+name: Comment PR with dbt profiler markdown for changed models
 
 permissions:
   issues: write
 
+# PR が作成、再オープン、更新されたときに実行
 on:
   pull_request:
     types: [opened, reopened, synchronize]
+
+env:
+  base_branch: main
+  diff_path: 'models/**/*.sql'
 
 jobs:
   comment-pr:
@@ -14,7 +19,7 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v3
         with:
-          fetch-depth: 0   # 差分抽出のために全履歴を取得
+          fetch-depth: 0  # 差分抽出のため、全履歴を取得
 
       - name: Set up Python 3.10
         uses: actions/setup-python@v4
@@ -30,31 +35,44 @@ jobs:
         working-directory: sample_project
         run: dbt deps
 
+      - name: Fetch base branch
+        working-directory: sample_project
+        run: git fetch origin ${base_branch}:${base_branch}
+
       - name: Identify changed models
         working-directory: sample_project
+        id: diff
         run: |
-          # origin/main と比較して変更された models/ 配下の .sql ファイルを抽出
-          git fetch origin main
-          changed_models=$(git diff --name-only origin/main...HEAD | grep '^models/.*\.sql$' || true)
-          echo "Changed models: $changed_models"
-          echo "$changed_models" > changed_models.txt
+          # origin/main と比較して変更された models/ 以下の SQL ファイルを抽出
+          diff_files=$(git diff --name-only HEAD ${base_branch} -- "${diff_path}" | tr "\n" " ")
+          echo "Changed models: ${diff_files}"
+          echo "::set-output name=files::${diff_files}"
+          # 改行区切りでファイル一覧を changed_models.txt に保存
+          git diff --name-only HEAD ${base_branch} -- "${diff_path}" > changed_models.txt
           cat changed_models.txt
 
-      - name: Generate combined profiler report for changed models
+      - name: Run dbt build
+        working-directory: sample_project
+        env:
+          SNOWFLAKE_ACCOUNT: ${{ secrets.SNOWFLAKE_ACCOUNT }}
+          SNOWFLAKE_USER: ${{ secrets.SNOWFLAKE_USER }}
+          SNOWFLAKE_PRIVATE_KEY: ${{ secrets.SNOWFLAKE_PRIVATE_KEY }}
+        run: dbt build
+
+      - name: Generate combined profiler markdown file for changed models
         working-directory: sample_project
         env:
           SNOWFLAKE_ACCOUNT: ${{ secrets.SNOWFLAKE_ACCOUNT }}
           SNOWFLAKE_USER: ${{ secrets.SNOWFLAKE_USER }}
           SNOWFLAKE_PRIVATE_KEY: ${{ secrets.SNOWFLAKE_PRIVATE_KEY }}
         run: |
-          # 初期化：統合レポートファイルを作成
+          # 統合レポートの初期化
           echo "### dbt Profiler Report for Changed Models" > combined_report.md
           echo "" >> combined_report.md
-          
-          # 変更のあったモデルがある場合
+
           if [ -s changed_models.txt ]; then
             while read model_path; do
-              # ファイル名から拡張子 .sql を除いてモデル名を抽出
+              # ファイルパスから拡張子 .sql を除いてモデル名を抽出
               model_name=$(basename "$model_path" .sql)
               echo "#### Model: ${model_name}" >> combined_report.md
               echo "" >> combined_report.md
@@ -67,7 +85,6 @@ jobs:
           else
             echo "No changed models found." >> combined_report.md
           fi
-          # ログ出力で内容を確認
           cat combined_report.md
 
       - name: Set combined report as output
