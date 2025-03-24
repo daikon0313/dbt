@@ -43,11 +43,9 @@ jobs:
         working-directory: sample_project
         id: diff
         run: |
-          # origin/main と比較して変更された models/ 以下の SQL ファイルを抽出
           diff_files=$(git diff --name-only HEAD ${base_branch} -- "${diff_path}" | tr "\n" " ")
           echo "Changed models: ${diff_files}"
           echo "::set-output name=files::${diff_files}"
-          # 改行区切りでファイル一覧を changed_models.txt に保存
           git diff --name-only HEAD ${base_branch} -- "${diff_path}" > changed_models.txt
           cat changed_models.txt
 
@@ -66,17 +64,14 @@ jobs:
           SNOWFLAKE_USER: ${{ secrets.SNOWFLAKE_USER }}
           SNOWFLAKE_PRIVATE_KEY: ${{ secrets.SNOWFLAKE_PRIVATE_KEY }}
         run: |
-          # 統合レポートの初期化
           echo "### dbt Profiler Report for Changed Models" > combined_report.md
           echo "" >> combined_report.md
 
           if [ -s changed_models.txt ]; then
             while read model_path; do
-              # ファイルパスから拡張子 .sql を除いてモデル名を抽出
               model_name=$(basename "$model_path" .sql)
               echo "#### Model: ${model_name}" >> combined_report.md
               echo "" >> combined_report.md
-              # 各モデルに対して dbt_profiler を実行
               dbt run-operation print_profile --args "{\"relation_name\": \"${model_name}\", \"exclude_measures\": [\"std_dev_population\", \"std_dev_sample\", \"avg\", \"median\"]}" 2>&1 \
                 | sed -r 's/\x1B\[[0-9;]*[mK]//g' \
                 | awk '/^\|/{print}' >> combined_report.md
