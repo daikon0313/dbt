@@ -1,11 +1,16 @@
-name: Comment PR with dbt profiler markdown
+name: Comment PR with dbt profiler markdown for changed models
 
 permissions:
   issues: write
 
+# PR が作成、再オープン、更新されたときに実行
 on:
   pull_request:
     types: [opened, reopened, synchronize]
+
+env:
+  base_branch: main
+  diff_path: 'models/**/*.sql'
 
 jobs:
   comment-pr:
@@ -13,6 +18,8 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
+        with:
+          fetch-depth: 0  # 差分抽出のため、全履歴を取得
 
       - name: Set up Python 3.10
         uses: actions/setup-python@v4
@@ -28,46 +35,65 @@ jobs:
         working-directory: sample_project
         run: dbt deps
 
-      - name: Run dbt build for notion_mart
+      - name: Fetch base branch
+        working-directory: sample_project
+        run: git fetch origin ${base_branch}:${base_branch}
+
+      - name: Identify changed models
+        working-directory: sample_project
+        id: diff
+        run: |
+          diff_files=$(git diff --name-only HEAD ${base_branch} -- "${diff_path}" | tr "\n" " ")
+          echo "Changed models: ${diff_files}"
+          echo "::set-output name=files::${diff_files}"
+          git diff --name-only HEAD ${base_branch} -- "${diff_path}" > changed_models.txt
+          cat changed_models.txt
+
+      - name: Run dbt build
+        working-directory: sample_project
+        env:
+          SNOWFLAKE_ACCOUNT: ${{ secrets.SNOWFLAKE_ACCOUNT }}
+          SNOWFLAKE_USER: ${{ secrets.SNOWFLAKE_USER }}
+          SNOWFLAKE_PRIVATE_KEY: ${{ secrets.SNOWFLAKE_PRIVATE_KEY }}
+        run: dbt build
+
+      - name: Generate combined profiler markdown file for changed models
         working-directory: sample_project
         env:
           SNOWFLAKE_ACCOUNT: ${{ secrets.SNOWFLAKE_ACCOUNT }}
           SNOWFLAKE_USER: ${{ secrets.SNOWFLAKE_USER }}
           SNOWFLAKE_PRIVATE_KEY: ${{ secrets.SNOWFLAKE_PRIVATE_KEY }}
         run: |
-          dbt build
+          echo "### dbt Profiler Report for Changed Models" > combined_report.md
+          echo "" >> combined_report.md
 
-      - name: Generate profiler markdown file
-        working-directory: sample_project
-        env:
-          SNOWFLAKE_ACCOUNT: ${{ secrets.SNOWFLAKE_ACCOUNT }}
-          SNOWFLAKE_USER: ${{ secrets.SNOWFLAKE_USER }}
-          SNOWFLAKE_PRIVATE_KEY: ${{ secrets.SNOWFLAKE_PRIVATE_KEY }}
-        run: |
-          echo "### dbt Profiler Report" > notion_mart.md
-          echo "**Model:** notion_mart" >> notion_mart.md
-          echo "" >> notion_mart.md
+          if [ -s changed_models.txt ]; then
+            while read model_path; do
+              model_name=$(basename "$model_path" .sql)
+              echo "#### Model: ${model_name}" >> combined_report.md
+              echo "" >> combined_report.md
+              dbt run-operation print_profile --args "{\"relation_name\": \"${model_name}\", \"exclude_measures\": [\"std_dev_population\", \"std_dev_sample\", \"avg\", \"median\"]}" 2>&1 \
+                | sed -r 's/\x1B\[[0-9;]*[mK]//g' \
+                | awk '/^\|/{print}' >> combined_report.md
+              echo "" >> combined_report.md
+            done < changed_models.txt
+          else
+            echo "No changed models found." >> combined_report.md
+          fi
+          cat combined_report.md
 
-          # 2) ファイル出力
-          dbt run-operation print_profile --args '{"relation_name": "notion_mart", "exclude_measures": ["std_dev_population", "std_dev_sample", "avg", "median"]}' 2>&1 \
-            | sed -r 's/\x1B\[[0-9;]*[mK]//g' \
-            | awk '/^\|/{print}' >> notion_mart.md
-
-          # 確認
-          cat notion_mart.md
-
-      - name: Set comment as output
-        id: get_comment
+      - name: Set combined report as output
+        id: get_report
         working-directory: sample_project
         run: |
-          comment=$(cat notion_mart.md)
-          echo "comment<<EOF" >> $GITHUB_OUTPUT
-          echo "$comment" >> $GITHUB_OUTPUT
+          report=$(cat combined_report.md)
+          echo "report<<EOF" >> $GITHUB_OUTPUT
+          echo "$report" >> $GITHUB_OUTPUT
           echo "EOF" >> $GITHUB_OUTPUT
 
-      - name: Post profiler comment to PR
+      - name: Post profiler report to PR using PAT
         uses: peter-evans/create-or-update-comment@v3
         with:
           token: ${{ secrets.PERSONAL_GITHUB_TOKEN }}
           issue-number: ${{ github.event.pull_request.number }}
-          body: ${{ steps.get_comment.outputs.comment }}
+          body: ${{ steps.get_report.outputs.report }}
