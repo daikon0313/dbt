@@ -52,33 +52,39 @@ jobs:
           # ファイル内容をログにも出力して確認
           cat notion_mart.md
 
-      - name: Set markdown as output
-        id: set_markdown
-        working-directory: sample_project
+      - name: Create fixed comment file
         run: |
-          markdown=$(cat notion_mart.md)
-          echo "markdown<<EOF" >> $GITHUB_OUTPUT
-          echo "$markdown" >> $GITHUB_OUTPUT
-          echo "EOF" >> $GITHUB_OUTPUT
+          cat <<EOF > comment.md
+          This is a fixed comment.
+          Please check the run details at: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          EOF
+      # - name: Set markdown as output
+      #   id: set_markdown
+      #   working-directory: sample_project
+      #   run: |
+      #     markdown=$(cat notion_mart.md)
+      #     echo "markdown<<EOF" >> $GITHUB_OUTPUT
+      #     echo "$markdown" >> $GITHUB_OUTPUT
+      #     echo "EOF" >> $GITHUB_OUTPUT
 
-      - name: Comment PR with profiler markdown using GITHUB_TOKEN
-        if: env.USE_PAT != 'true'
-        uses: peter-evans/create-or-update-comment@v3
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          issue-number: ${{ github.event.pull_request.number }}
-          body: |
-            ## dbt Profiler Report for notion_mart
+      # - name: Comment PR with profiler markdown using GITHUB_TOKEN
+      #   if: env.USE_PAT != 'true'
+      #   uses: peter-evans/create-or-update-comment@v3
+      #   with:
+      #     token: ${{ secrets.GITHUB_TOKEN }}
+      #     issue-number: ${{ github.event.pull_request.number }}
+      #     body: |
+      #       ## dbt Profiler Report for notion_mart
 
-            ${{ steps.set_markdown.outputs.markdown }}
+      #       ${{ steps.set_markdown.outputs.markdown }}
 
-      - name: Comment PR with profiler markdown using PAT
-        if: env.USE_PAT == 'true'
-        uses: peter-evans/create-or-update-comment@v3
-        with:
-          token: ${{ secrets.PERSONAL_GITHUB_TOKEN }}
-          issue-number: ${{ github.event.pull_request.number }}
-          body: |
-            ## dbt Profiler Report for notion_mart
+      # - name: Comment PR with profiler markdown using PAT
+      #   if: env.USE_PAT == 'true'
+      #   uses: peter-evans/create-or-update-comment@v3
+      #   with:
+      #     token: ${{ secrets.PERSONAL_GITHUB_TOKEN }}
+      #     issue-number: ${{ github.event.pull_request.number }}
+      #     body: |
+      #       ## dbt Profiler Report for notion_mart
 
-            ${{ steps.set_markdown.outputs.markdown }}
+      #       ${{ steps.set_markdown.outputs.markdown }}
