@@ -1,4 +1,4 @@
-name: Comment PR with fixed message
+name: Comment PR with fixed message (using PAT)
 
 permissions:
   issues: write
@@ -30,9 +30,9 @@ jobs:
           echo "$comment" >> $GITHUB_OUTPUT
           echo "EOF" >> $GITHUB_OUTPUT
 
-      - name: Post fixed comment to PR
+      - name: Post fixed comment to PR using PAT
         uses: peter-evans/create-or-update-comment@v3
         with:
-          token: ${{ secrets.GITHUB_TOKEN }}
+          token: ${{ secrets.PERSONAL_GITHUB_TOKEN }}
           issue-number: ${{ github.event.pull_request.number }}
           body: ${{ steps.get_comment.outputs.comment }}
