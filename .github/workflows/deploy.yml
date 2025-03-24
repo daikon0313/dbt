@@ -44,34 +44,30 @@ jobs:
           SNOWFLAKE_USER: ${{ secrets.SNOWFLAKE_USER }}
           SNOWFLAKE_PRIVATE_KEY: ${{ secrets.SNOWFLAKE_PRIVATE_KEY }}
         run: |
-          # notion_mart.md に dbt_profiler の出力を保存
-          dbt run-operation print_profile --args '{"relation_name": "notion_mart", "exclude_measures": ["std_dev_population", "std_dev_sample", "avg", "median"]}' > notion_mart.md
-          # 必要に応じてヘッダーなどを追加
-          echo "### dbt Profiler Report for notion_mart" >> notion_mart.md
+          echo "### dbt Profiler Report" > notion_mart.md
+          echo "**Model:** notion_mart" >> notion_mart.md
           echo "" >> notion_mart.md
-          # 出力内容をログに表示
-          cat notion_mart.md
 
-      - name: Create comment file from profiler markdown
-        working-directory: sample_project
-        run: |
-          # notion_mart.md の内容を comment.md にコピー
-          cp notion_mart.md comment.md
-          # 出力確認用に表示
-          cat comment.md
+          # 2) ファイル出力
+          dbt run-operation print_profile --args '{"relation_name": "notion_mart", "exclude_measures": ["std_dev_population", "std_dev_sample", "avg", "median"]}' 2>&1 \
+            | sed -r 's/\x1B\[[0-9;]*[mK]//g' \
+            | awk '/^\|/{print}' >> notion_mart.md
+
+          # 確認
+          cat notion_mart.md
 
       - name: Set comment as output
         id: get_comment
         working-directory: sample_project
         run: |
-          comment=$(cat comment.md)
+          comment=$(cat notion_mart.md)
           echo "comment<<EOF" >> $GITHUB_OUTPUT
           echo "$comment" >> $GITHUB_OUTPUT
           echo "EOF" >> $GITHUB_OUTPUT
 
-      - name: Post profiler comment to PR using PAT
+      - name: Post profiler comment to PR
         uses: peter-evans/create-or-update-comment@v3
         with:
-          token: ${{ secrets.PERSONAL_GITHUB_TOKEN }}
+          token: ${{ secrets.GITHUB_TOKEN }}
           issue-number: ${{ github.event.pull_request.number }}
           body: ${{ steps.get_comment.outputs.comment }}
