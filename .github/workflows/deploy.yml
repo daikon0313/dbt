@@ -23,14 +23,15 @@ jobs:
           python -m pip install --upgrade pip
           pip install dbt-core dbt-snowflake
 
-      - name: check
+      - name: Check working directory structure
         run: |
-          echo "pwd"
+          echo "Current directory:"
           pwd
-          echo "ls"
+          echo "Listing contents:"
           ls
 
       - name: Run dbt models
+        working-directory: sample_project
         env:
           SNOWFLAKE_ACCOUNT: ${{ secrets.SNOWFLAKE_ACCOUNT }}
           SNOWFLAKE_USER: ${{ secrets.SNOWFLAKE_USER }}
