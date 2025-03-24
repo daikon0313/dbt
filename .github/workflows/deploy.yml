@@ -1,5 +1,9 @@
 name: Comment PR with dbt profiler markdown
 
+# PR コメントに必要な権限を明示的に設定
+permissions:
+  issues: write
+
 on:
   pull_request:
     types: [opened, reopened, synchronize]
@@ -43,9 +47,10 @@ jobs:
         run: |
           # notion_mart.md に dbt_profiler の出力を保存
           dbt run-operation print_profile --args '{"relation_name": "notion_mart", "exclude_measures": ["std_dev_population", "std_dev_sample", "avg", "median"]}' > notion_mart.md
-          echo "### dbt Profiler Output for notion_mart" >> notion_mart.md
+          # ヘッダーを追加（必要に応じて調整）
+          echo "### dbt Profiler Report for notion_mart" >> notion_mart.md
           echo "" >> notion_mart.md
-          # ファイルの内容をログにも出力
+          # 内容をログに出力して確認
           cat notion_mart.md
 
       - name: Set markdown as output
