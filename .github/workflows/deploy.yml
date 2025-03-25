@@ -3,7 +3,6 @@ name: Comment PR with dbt profiler markdown for changed models
 permissions:
   issues: write
 
-# PR が作成、再オープン、更新されたときに実行
 on:
   pull_request:
     types: [opened, reopened, synchronize]
@@ -19,7 +18,7 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v3
         with:
-          fetch-depth: 0  # 差分抽出のため、全履歴を取得
+          fetch-depth: 0
 
       - name: Set up Python 3.10
         uses: actions/setup-python@v4
