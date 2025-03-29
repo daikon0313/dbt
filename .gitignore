@@ -6,3 +6,7 @@ target/
 dbt_packages/
 logs/
 # end dbt Cloud content
+
+.env
+memo.txt
+.user.yml
