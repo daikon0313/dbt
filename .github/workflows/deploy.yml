@@ -32,15 +32,15 @@ jobs:
           pip install dbt-core dbt-snowflake
 
       - name: Install dbt packages
-        working-directory: sample_project
+        # working-directory: sample_project
         run: dbt deps
 
       - name: Fetch base branch
-        working-directory: sample_project
+        # working-directory: sample_project
         run: git fetch origin ${base_branch}:${base_branch}
 
       - name: Identify changed models
-        working-directory: sample_project
+        # working-directory: sample_project
         id: diff
         run: |
           diff_files=$(git diff --name-only HEAD ${base_branch} -- "${diff_path}" | tr "\n" " ")
@@ -50,7 +50,7 @@ jobs:
           cat changed_models.txt
 
       - name: Run dbt build
-        working-directory: sample_project
+        # working-directory: sample_project
         env:
           SNOWFLAKE_ACCOUNT: ${{ secrets.SNOWFLAKE_ACCOUNT }}
           SNOWFLAKE_USER: ${{ secrets.SNOWFLAKE_USER }}
@@ -58,7 +58,7 @@ jobs:
         run: dbt build
 
       - name: Generate combined profiler markdown file for changed models
-        working-directory: sample_project
+        # working-directory: sample_project
         env:
           SNOWFLAKE_ACCOUNT: ${{ secrets.SNOWFLAKE_ACCOUNT }}
           SNOWFLAKE_USER: ${{ secrets.SNOWFLAKE_USER }}
@@ -84,7 +84,7 @@ jobs:
 
       - name: Set combined report as output
         id: get_report
-        working-directory: sample_project
+        # working-directory: sample_project
         run: |
           report=$(cat combined_report.md)
           echo "report<<EOF" >> $GITHUB_OUTPUT
