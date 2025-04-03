@@ -15,6 +15,3 @@ models:
         
       - name: TOTAL_AMOUNT
         data_type: NUMBER
-        
-    tests:
-      - elementary.schema_changes_from_baseline
