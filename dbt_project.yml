@@ -37,6 +37,19 @@ clean-targets:         # directories to be removed by `dbt clean`
 
 models:
   my_new_project:
-    # Applies to all files under models/example/
-    example:
+    notion:
       +materialized: table
+      +schema: notion
+    notion_2:
+      +materialized: table
+      +schema: notion
+    test_elementary:
+      +materialized: table
+      +schema: test_elementary
+    elementary:
+      +schema: "elementary"
+
+# Required from dbt 1.8 and above for certain Elementary features
+flags:
+  require_explicit_package_overrides_for_builtin_materializations: False
+  source_freshness_run_project_hooks: True

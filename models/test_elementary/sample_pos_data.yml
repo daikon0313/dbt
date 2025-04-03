@@ -1,0 +1,92 @@
+version: 2
+
+models:
+  - name: sample_pos_data
+    config:
+      elementary:
+        timestamp_column: 'loaded_datetime'
+    description: |
+      POS（購買）データの明細レベルのモデルです。
+      日時ごとの購買明細が格納されています。
+    tests:
+      - elementary.volume_anomalies:
+          timestamp_column: loaded_datetime
+          detection_period:
+            period: day
+            count: 2
+          training_period:
+            period: day
+            count: 14          
+          time_bucket:
+            period: day
+            count: 1
+          tags: ["elementary"]
+          config:
+            severity: warn
+      - elementary.freshness_anomalies:
+          timestamp_column: loaded_datetime
+          detection_period:
+            period: day
+            count: 1
+          tags: ["elementary"]
+          config:
+            # optional - change severity
+            severity: warn
+      - elementary.event_freshness_anomalies:
+          event_timestamp_column: purchase_datetime
+          update_timestamp_column: loaded_datetime
+          detection_period:
+            period: day
+            count: 1
+          tags: ["elementary"]
+          config:
+            # optional - change severity
+            severity: warn
+      - elementary.dimension_anomalies:
+          timestamp_column: loaded_datetime
+          dimensions:
+            - item 
+          time_bucket:
+            period: day
+            count: 1
+          tags: ["elementary"]
+          config:
+            severity: warn
+      - elementary.schema_changes:
+          tags: ["elementary"]
+          config:
+            severity: warn
+    columns:
+      - name: purchase_datetime
+        description: 購入日時（タイムスタンプ）
+        tests:
+          - not_null
+
+      - name: item
+        description: 商品名
+        tests:
+          - not_null
+
+      - name: price
+        description: 商品単価（円）
+        tests:
+          - elementary.column_anomalies:
+              column_anomalies:
+                - missing_count
+                - missing_percent
+                - max
+                - min
+              where_expression: "ITEM = 'サンドイッチ'"
+              time_bucket:
+                period: day
+                count: 1
+              tags: ['elementary']
+      - name: customer_id
+        description: 購入者ID
+        tests:
+          - not_null
+
+      - name: store_name
+        description: 店舗名
+        tests:
+          - not_null
