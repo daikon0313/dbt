@@ -1,15 +1,18 @@
-version: 2
-
 sources:
   - name: notion
-    database: d_harato_db
-    schema: notion
     tables:
       - name: work_log
         columns:
           - name: FETCHED_AT
             data_type: TIMESTAMP_LTZ
+            
           - name: FETCHED_DT
             data_type: DATE
+            
           - name: CONTEXTS
             data_type: VARIANT
+            
+        tests:
+          - elementary.schema_changes_from_baseline:
+              fail_on_added: true
+              enforce_types: true

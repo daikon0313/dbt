@@ -1,7 +1,7 @@
 version: 2
+
 models:
   - name: notion_mart
-    # description: "{{ doc('dbt_profiler__customer') }}"
     columns:
       - name: FETCHED_AT
         data_type: TIMESTAMP_LTZ

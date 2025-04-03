@@ -1,0 +1,17 @@
+models:
+  - name: sample_pos_data_summary
+    columns:
+      - name: STORE_NAME
+        data_type: VARIANT
+        
+      - name: CUSTOMER_ID
+        data_type: VARCHAR
+        
+      - name: PURCHASE_DATE
+        data_type: TIMESTAMP_LTZ
+        
+      - name: TOTAL_ITEMS
+        data_type: TEXT
+        
+      - name: TOTAL_AMOUNT
+        data_type: NUMBER
